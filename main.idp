@@ -1,0 +1,145 @@
+vocabulary Tetriminos {
+    type Index = {1..4} isa int
+    type Block = {1..4} isa int
+    type Type = { "R"; "S"; "T"; "L" } isa char
+    type Rotation = { "ROT_0"; "ROT_90"; "ROT_180"; "ROT_270" } isa string
+    type Reflection = {0..1} isa int // 1 means reflected
+
+    nR : int
+    nS : int
+    nT : int
+    nL : int
+
+    n : int
+    
+    BlockType(Block, Type)
+    Located(Block, Index, Index)
+    Rotated(Block, Rotation)
+    Reflected(Block, Reflection)
+    Has(Index, Index, Block)
+}
+
+theory TetriminoPacking : Tetriminos {
+    // some sanity checks on definitions of core variables
+    n = MAX[:Index].
+    !i[Index] : Block(i).
+    MIN[:Block] = 1.
+    MAX[:Block] = n.
+
+    nR>=0.
+    nS>=0.
+    nT>=0.
+    nL>=0.
+    sum(nR, nS, nT, nL) = n.
+
+    // All blocks have a type and the number of each type is correct
+    !b[Block] : ?1 t[Type] : BlockType(b, t).
+    #{ b[Block] : BlockType(b, "R") } = nR.
+    #{ b[Block] : BlockType(b, "S") } = nS.
+    #{ b[Block] : BlockType(b, "T") } = nT.
+    #{ b[Block] : BlockType(b, "L") } = nL.
+    
+    // All cells have a block
+    !x[Index] : !y[Index] : ?1 b[Block] : Has(x, y, b).
+    
+    // All blocks have a location, reflection, and rotation
+    !b[Block] : ?1 x[Index] : ?1 y[Index] : Located(b, x, y).
+    !b[Block] : ?1 r[Reflection] : Reflected(b, r).
+    !b[Block] : ?1 r[Rotation] : Rotated(b, r).
+    
+    !b[Block] : !x[Index] : !y[Index] :
+      (
+        // Rectangle constraints
+        BlockType(b, "R") & Located(b, x, y) =>
+            (
+                Rotated(b, "ROT_0") & (y + 3 =< n) =>
+            Has(x, y, b) & Has(x, y + 1, b) & Has(x, y + 2, b) & Has(x, y + 3, b)
+            ) & (
+                ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) & (x + 3 =< n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x + 2, y, b) & Has(x + 3, y, b)
+            ) & (
+                Rotated(b, "ROT_180") & (y - 3 >= n) =>
+            Has(x, y, b) & Has(x, y - 1, b) & Has(x, y - 2, b) & Has(x, y - 3, b)
+            ) & (
+                ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) & (x - 3 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x - 2, y, b) & Has(x - 3, y, b)
+            )
+      ) & (
+        // Square Constraints
+        BlockType(b, "S") & Located(b, x, y) =>
+        (
+          ((Rotated(b, "ROT_0") & Reflected(b, 0)) | (Rotated(b, "ROT_90") & Reflected(b, 1))) & (x + 1 =< n) & (y - 1 >= n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x, y - 1, b) & Has(x + 1, y - 1, b)
+        ) & (
+          ((Rotated(b, "ROT_0") & Reflected(b, 1)) | (Rotated(b, "ROT_90") & Reflected(b, 0))) & (x - 1 >= n) & (y - 1 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x, y - 1, b) & Has(x - 1, y - 1, b)
+        ) & (
+          ((Rotated(b, "ROT_180") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) & (x - 1 >= n) & (y + 1 =< n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x, y + 1, b) & Has(x - 1, y + 1, b)
+        ) & (
+          ((Rotated(b, "ROT_180") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) & (x + 1 =< n) & (y + 1 =< n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x, y + 1, b) & Has(x + 1, y + 1, b)
+        )
+      ) & (
+        // L Constraints
+        BlockType(b, "L") & Located(b, x, y) =>
+        (
+          Rotated(b, "ROT_0") & Reflected(b, 0) & (x + 1 =< n) & (y - 2 >= n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x, y - 1, b) & Has(x, y - 2, b)
+        ) & (
+          Rotated(b, "ROT_0") & Reflected(b, 1) & (x - 1 >= n) & (y - 2 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x, y - 1, b) & Has(x, y - 2, b)
+        ) & (
+          Rotated(b, "ROT_90") & Reflected(b, 0) & (x - 2 >= n) & (y - 1 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x - 2 , y, b) & Has(x, y - 1, b)
+        ) & (
+          Rotated(b, "ROT_90") & Reflected(b, 1) & (x + 2 =< n) & (y - 1 >= n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x + 2 , y, b) & Has(x, y - 1, b)
+        ) & (
+          Rotated(b, "ROT_180") & Reflected(b, 0) & (x - 1 >= n) & (y + 2 =< n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x, y + 1, b) & Has(x, y + 2, b)
+        ) & (
+          Rotated(b, "ROT_180") & Reflected(b, 1) & (x + 1 =< n) & (y + 2 =< n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x, y + 1, b) & Has(x, y + 2, b)
+        ) & (
+          Rotated(b, "ROT_270") & Reflected(b, 0) & (x + 2 =< n) & (y + 1 =< n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x + 2 , y, b) & Has(x, y + 1, b)
+        ) & (
+          Rotated(b, "ROT_270") & Reflected(b, 1) & (x - 2 >= n) & (y + 1 =< n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x - 2 , y, b) & Has(x, y + 1, b)
+        )
+      ) & (
+        // T Constraints
+        BlockType(b, "T") & Located(b, x, y) =>
+        (
+                Rotated(b, "ROT_0") & (y - 1 >= n) & (x + 1 =< n) & (x - 1 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x + 1, y, b) & Has(x, y - 1, b)
+            ) & (
+                ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1)))  & (x - 1 >= n) & (y + 1 =< n) & (y - 1 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x, y + 1, b) & Has(x, y - 1, b)
+            ) & (
+                Rotated(b, "ROT_180") & (y + 1 =< n) & (x + 1 =< n) & (x - 1 >= n) =>
+            Has(x, y, b) & Has(x - 1, y, b) & Has(x + 1, y, b) & Has(x, y + 1, b)
+            ) & (
+                ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0)))  & (x + 1 =< n) & (y + 1 =< n) & (y - 1 >= n) =>
+            Has(x, y, b) & Has(x + 1, y, b) & Has(x, y + 1, b) & Has(x, y - 1, b)
+            )
+      ).
+    
+    // Square constraints
+}
+
+structure Packing : Tetriminos {
+    // Define the inputs
+    nR = 2
+    nS = 2
+    nT = 0
+    nL = 0
+    n = 4
+}
+
+procedure main(){
+    stdoptions.cpsupport=true
+    printmodels(modelexpand(TetriminoPacking,Packing))
+}
+
