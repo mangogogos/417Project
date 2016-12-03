@@ -20,16 +20,10 @@ vocabulary Tetriminos {
 }
 
 theory TetriminoPacking : Tetriminos {
-    // some sanity checks on definitions of core variables
-    n = MAX[:Index].
-    !i[Index] : Block(i).
-    MIN[:Block] = 1.
-    MAX[:Block] = n.
-
-    nR>=0.
-    nS>=0.
-    nT>=0.
-    nL>=0.
+    nR >= 0.
+    nS >= 0.
+    nT >= 0.
+    nL >= 0.
     sum(nR, nS, nT, nL) = n.
 
     // All blocks have a type and the number of each type is correct
@@ -43,7 +37,7 @@ theory TetriminoPacking : Tetriminos {
     !x[Index], y[Index] : ?1 b[Block] : Has(x, y, b).
 
     // All blocks have a unique location, reflection, and rotation
-    !b1[Block], b2[Block] : ?1 x[Index], y[Index] : Located(b1, x, y) & (Located(b2, x, y) => b1 = b2).
+    !b[Block] : ?1 x[Index], y[Index] : Located(b, x, y).
     !b[Block] : ?1 r[Reflection] : Reflected(b, r).
     !b[Block] : ?1 r[Rotation] : Rotated(b, r).
 
@@ -270,14 +264,13 @@ theory TetriminoPacking : Tetriminos {
 
 structure Packing : Tetriminos {
     // Define the inputs
-    nR = 2
-    nS = 2
-    nT = 0
+    nR = 0
+    nS = 0
+    nT = 4
     nL = 0
     n = 4
 }
 
 procedure main(){
-    // stdoptions.cpsupport=true
     printmodels(modelexpand(TetriminoPacking,Packing))
 }
