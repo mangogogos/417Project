@@ -50,8 +50,8 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) &
-        Rotated(b, "ROT_0") &
-        (y + 3 =< n) =>
+        Rotated(b, "ROT_0") =>
+            (y + 3 =< n) &
             Has(x, y + 0, b) &
             Has(x, y + 1, b) &
             Has(x, y + 2, b) &
@@ -60,8 +60,8 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) &
-        ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) &
-        (x - 3 >= n) =>
+        ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) =>
+            (x - 3 >= n) &
             Has(x - 0, y, b) &
             Has(x - 1, y, b) &
             Has(x - 2, y, b) &
@@ -70,8 +70,8 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) &
-        Rotated(b, "ROT_180") &
-        (y - 3 >= n) =>
+        Rotated(b, "ROT_180") =>
+            (y - 3 >= n) &
             Has(x, y - 0, b) &
             Has(x, y - 1, b) &
             Has(x, y - 2, b) &
@@ -80,8 +80,8 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) & 
-        ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) &
-        (x + 3 >= n) =>
+        ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) =>
+            (x + 3 >= n) &
             Has(x + 0, y, b) &
             Has(x + 1, y, b) &
             Has(x + 2, y, b) &
@@ -90,9 +90,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) & 
-        ((Rotated(b, "ROT_0") & Reflected(b, 0)) | (Rotated(b, "ROT_90") & Reflected(b, 1))) &
-        (x + 1 =< n) &
-        (y - 1 >= n) =>
+        ((Rotated(b, "ROT_0") & Reflected(b, 0)) | (Rotated(b, "ROT_90") & Reflected(b, 1))) =>
+            (x + 1 =< n) &
+            (y - 1 >= n) &
             Has(x + 0, y - 0, b) &
             Has(x + 0, y - 1, b) &
             Has(x + 1, y - 0, b) &
@@ -101,9 +101,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) &
-        ((Rotated(b, "ROT_0") & Reflected(b, 1)) | (Rotated(b, "ROT_90") & Reflected(b, 0))) &
-        (x - 1 >= n) &
-        (y - 1 >= n) =>
+        ((Rotated(b, "ROT_0") & Reflected(b, 1)) | (Rotated(b, "ROT_90") & Reflected(b, 0))) =>
+            (x - 1 >= n) &
+            (y - 1 >= n) &
             Has(x - 0, y - 0, b) &
             Has(x - 0, y - 1, b) &
             Has(x - 1, y - 0, b) &
@@ -112,9 +112,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) &
-        ((Rotated(b, "ROT_180") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) &
-        (x - 1 >= n) &
-        (y + 1 =< n) =>
+        ((Rotated(b, "ROT_180") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) =>
+            (x - 1 >= n) &
+            (y + 1 =< n) &
             Has(x - 0, y + 0, b) &
             Has(x - 0, y + 1, b) &
             Has(x - 1, y + 0, b) &
@@ -123,9 +123,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) &
-        ((Rotated(b, "ROT_180") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) &
-        (x + 1 =< n) &
-        (y + 1 =< n) =>
+        ((Rotated(b, "ROT_180") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) =>
+            (x + 1 =< n) &
+            (y + 1 =< n) &
             Has(x + 0, y + 0, b) &
             Has(x + 0, y + 1, b) &
             Has(x + 1, y + 0, b) &
@@ -134,9 +134,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_0") & Reflected(b, 0) &
-        (x + 1 =< n) &
-        (y - 2 >= n) =>
+        Rotated(b, "ROT_0") & Reflected(b, 0) =>
+            (x + 1 =< n) &
+            (y - 2 >= n) &
             Has(x + 0, y - 0, b) &
             Has(x + 1, y - 0, b) &
             Has(x + 0, y - 1, b) &
@@ -145,9 +145,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_0") & Reflected(b, 1) &
-        (x - 1 >= n) &
-        (y - 2 >= n) =>
+        Rotated(b, "ROT_0") & Reflected(b, 1) =>
+            (x - 1 >= n) &
+            (y - 2 >= n) &
             Has(x - 0, y - 0, b) &
             Has(x - 1, y - 0, b) &
             Has(x - 0, y - 1, b) &
@@ -156,9 +156,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_90") & Reflected(b, 0) &
-        (x - 2 >= n) &
-        (y - 1 >= n) =>
+        Rotated(b, "ROT_90") & Reflected(b, 0) =>
+            (x - 2 >= n) &
+            (y - 1 >= n) &
             Has(x - 0, y - 0, b) &
             Has(x - 0, y - 1, b) &
             Has(x - 1, y - 0, b) &
@@ -167,9 +167,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_90") & Reflected(b, 1) &
-        (x + 2 =< n) &
-        (y - 1 >= n) =>
+        Rotated(b, "ROT_90") & Reflected(b, 1) =>
+            (x + 2 =< n) &
+            (y - 1 >= n) &
             Has(x + 0, y - 0, b) &
             Has(x + 0, y - 1, b) &
             Has(x + 1, y - 0, b) &
@@ -178,9 +178,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_180") & Reflected(b, 0) &
-        (x - 1 >= n) &
-        (y + 2 =< n) =>
+        Rotated(b, "ROT_180") & Reflected(b, 0) =>
+            (x - 1 >= n) &
+            (y + 2 =< n) &
             Has(x - 0, y + 0, b) &
             Has(x - 1, y + 0, b) &
             Has(x - 0, y + 1, b) &
@@ -189,9 +189,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_180") & Reflected(b, 1) &
-        (x + 1 =< n) &
-        (y + 2 =< n) =>
+        Rotated(b, "ROT_180") & Reflected(b, 1) =>
+            (x + 1 =< n) &
+            (y + 2 =< n) &
             Has(x + 0, y + 0, b) &
             Has(x + 1, y + 0, b) &
             Has(x + 0, y + 1, b) &
@@ -200,9 +200,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_270") & Reflected(b, 0) &
-        (x + 2 =< n) &
-        (y + 1 =< n) =>
+        Rotated(b, "ROT_270") & Reflected(b, 0) =>
+            (x + 2 =< n) &
+            (y + 1 =< n) &
             Has(x + 0, y + 0, b) &
             Has(x + 0, y + 1, b) &
             Has(x + 1, y + 0, b) &
@@ -211,9 +211,9 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
-        Rotated(b, "ROT_270") & Reflected(b, 1) &
-        (x - 2 >= n) &
-        (y + 1 =< n) =>
+        Rotated(b, "ROT_270") & Reflected(b, 1) =>
+            (x - 2 >= n) &
+            (y + 1 =< n) &
             Has(x - 0, y + 0, b) &
             Has(x - 0, y + 1, b) &
             Has(x - 1, y + 0, b) &
@@ -222,10 +222,10 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
-        Rotated(b, "ROT_0") &
-        (y - 1 >= n) &
-        (x + 1 =< n) &
-        (x - 1 >= n) =>
+        Rotated(b, "ROT_0") =>
+            (y - 1 >= n) &
+            (x + 1 =< n) &
+            (x - 1 >= n) &
             Has(x - 0, y - 0, b) &
             Has(x - 1, y - 0, b) &
             Has(x + 1, y - 0, b) &
@@ -234,10 +234,10 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
-        ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) &
-        (x - 1 >= n) &
-        (y + 1 =< n) &
-        (y - 1 >= n) =>
+        ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) =>
+            (x - 1 >= n) &
+            (y + 1 =< n) &
+            (y - 1 >= n) &
             Has(x - 0, y + 0, b) &
             Has(x - 0, y + 1, b) &
             Has(x - 0, y - 1, b) &
@@ -246,10 +246,10 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
-        Rotated(b, "ROT_180") &
-        (y + 1 =< n) &
-        (x - 1 >= n) &
-        (x + 1 =< n) =>
+        Rotated(b, "ROT_180") =>
+            (y + 1 =< n) &
+            (x - 1 >= n) &
+            (x + 1 =< n) &
             Has(x - 0, y + 0, b) &
             Has(x - 1, y + 0, b) &
             Has(x + 1, y + 0, b) &
@@ -258,10 +258,10 @@ theory TetriminoPacking : Tetriminos {
     !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
-        ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) &
-        (x + 1 =< n) &
-        (y - 1 >= n) &
-        (y + 1 =< n) =>
+        ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) =>
+            (x + 1 =< n) &
+            (y - 1 >= n) &
+            (y + 1 =< n) &
             Has(x + 0, y + 0, b) &
             Has(x + 0, y + 1, b) &
             Has(x + 0, y - 1, b) &
