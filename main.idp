@@ -11,7 +11,7 @@ vocabulary Tetriminos {
     nL : int
 
     n : int
-    
+
     BlockType(Block, Type)
     Located(Block, Index, Index)
     Rotated(Block, Rotation)
@@ -38,234 +38,234 @@ theory TetriminoPacking : Tetriminos {
     #{ b[Block] : BlockType(b, "S") } = nS.
     #{ b[Block] : BlockType(b, "T") } = nT.
     #{ b[Block] : BlockType(b, "L") } = nL.
-    
+
     // All cells have a block
-    !x[Index] : !y[Index] : ?1 b[Block] : Has(x, y, b).
+    !x[Index], y[Index] : ?1 b[Block] : Has(x, y, b).
 
     // All blocks have a unique location, reflection, and rotation
-    !b[Block] : ?1 x[Index], y[Index] : Located(b, x, y).
+    !b1[Block], b2[Block] : ?1 x[Index], y[Index] : Located(b1, x, y) & (Located(b2, x, y) => b1 = b2).
     !b[Block] : ?1 r[Reflection] : Reflected(b, r).
     !b[Block] : ?1 r[Rotation] : Rotated(b, r).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) &
         Rotated(b, "ROT_0") &
         (y + 3 =< n) =>
-            Has(x, y, b) &
+            Has(x, y + 0, b) &
             Has(x, y + 1, b) &
             Has(x, y + 2, b) &
             Has(x, y + 3, b).
 
-    !b[Block] : !x[Index] : !y[Index] :
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) &
-        (x + 3 =< n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x + 2, y, b) &
-            Has(x + 3, y, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+        (x - 3 >= n) =>
+            Has(x - 0, y, b) &
+            Has(x - 1, y, b) &
+            Has(x - 2, y, b) &
+            Has(x - 3, y, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) &
         Rotated(b, "ROT_180") &
         (y - 3 >= n) =>
-            Has(x, y, b) &
+            Has(x, y - 0, b) &
             Has(x, y - 1, b) &
             Has(x, y - 2, b) &
             Has(x, y - 3, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "R") &
         Located(b, x, y) & 
         ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) &
-        (x - 3 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x - 2, y, b) &
-            Has(x - 3, y, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+        (x + 3 >= n) =>
+            Has(x + 0, y, b) &
+            Has(x + 1, y, b) &
+            Has(x + 2, y, b) &
+            Has(x + 3, y, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) & 
         ((Rotated(b, "ROT_0") & Reflected(b, 0)) | (Rotated(b, "ROT_90") & Reflected(b, 1))) &
         (x + 1 =< n) &
         (y - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y - 1, b) &
+            Has(x + 0, y - 0, b) &
+            Has(x + 0, y - 1, b) &
+            Has(x + 1, y - 0, b) &
             Has(x + 1, y - 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_0") & Reflected(b, 1)) | (Rotated(b, "ROT_90") & Reflected(b, 0))) &
         (x - 1 >= n) &
         (y - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x, y - 1, b) &
+            Has(x - 0, y - 0, b) &
+            Has(x - 0, y - 1, b) &
+            Has(x - 1, y - 0, b) &
             Has(x - 1, y - 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_180") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) &
         (x - 1 >= n) &
         (y + 1 =< n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x, y + 1, b) &
+            Has(x - 0, y + 0, b) &
+            Has(x - 0, y + 1, b) &
+            Has(x - 1, y + 0, b) &
             Has(x - 1, y + 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "S") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_180") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) &
         (x + 1 =< n) &
         (y + 1 =< n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y + 1, b) &
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x + 1, y + 0, b) &
             Has(x + 1, y + 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_0") & Reflected(b, 0) &
         (x + 1 =< n) &
         (y - 2 >= n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y - 1, b) &
-            Has(x, y - 2, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x + 0, y - 0, b) &
+            Has(x + 1, y - 0, b) &
+            Has(x + 0, y - 1, b) &
+            Has(x + 0, y - 2, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_0") & Reflected(b, 1) &
         (x - 1 >= n) &
         (y - 2 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x, y - 1, b) &
-            Has(x, y - 2, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x - 0, y - 0, b) &
+            Has(x - 1, y - 0, b) &
+            Has(x - 0, y - 1, b) &
+            Has(x - 0, y - 2, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_90") & Reflected(b, 0) &
         (x - 2 >= n) &
         (y - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x - 2 , y, b) &
-            Has(x, y - 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x - 0, y - 0, b) &
+            Has(x - 0, y - 1, b) &
+            Has(x - 1, y - 0, b) &
+            Has(x - 2, y - 0, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_90") & Reflected(b, 1) &
         (x + 2 =< n) &
         (y - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x + 2 , y, b) &
-            Has(x, y - 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x + 0, y - 0, b) &
+            Has(x + 0, y - 1, b) &
+            Has(x + 1, y - 0, b) &
+            Has(x + 2, y - 0, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_180") & Reflected(b, 0) &
         (x - 1 >= n) &
         (y + 2 =< n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x, y + 1, b) &
-            Has(x, y + 2, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x - 0, y + 0, b) &
+            Has(x - 1, y + 0, b) &
+            Has(x - 0, y + 1, b) &
+            Has(x - 0, y + 2, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_180") & Reflected(b, 1) &
         (x + 1 =< n) &
         (y + 2 =< n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y + 1, b) &
-            Has(x, y + 2, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x + 0, y + 0, b) &
+            Has(x + 1, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x + 0, y + 2, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_270") & Reflected(b, 0) &
         (x + 2 =< n) &
         (y + 1 =< n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x + 2 , y, b) &
-            Has(x, y + 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x + 1, y + 0, b) &
+            Has(x + 2, y + 0, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_270") & Reflected(b, 1) &
         (x - 2 >= n) &
         (y + 1 =< n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x - 2 , y, b) &
-            Has(x, y + 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x - 0, y + 0, b) &
+            Has(x - 0, y + 1, b) &
+            Has(x - 1, y + 0, b) &
+            Has(x - 2, y + 0, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
         Rotated(b, "ROT_0") &
         (y - 1 >= n) &
         (x + 1 =< n) &
         (x - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y - 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x - 0, y - 0, b) &
+            Has(x - 1, y - 0, b) &
+            Has(x + 1, y - 0, b) &
+            Has(x + 0, y - 1, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_90") & Reflected(b, 0)) | (Rotated(b, "ROT_270") & Reflected(b, 1))) &
         (x - 1 >= n) &
         (y + 1 =< n) &
         (y - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x, y + 1, b) &
-            Has(x, y - 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+            Has(x - 0, y + 0, b) &
+            Has(x - 0, y + 1, b) &
+            Has(x - 0, y - 1, b) &
+            Has(x - 1, y + 0, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
         Rotated(b, "ROT_180") &
         (y + 1 =< n) &
-        (x + 1 =< n) &
-        (x - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x - 1, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y + 1, b).
-    
-    !b[Block] : !x[Index] : !y[Index] :
+        (x - 1 >= n) &
+        (x + 1 =< n) =>
+            Has(x - 0, y + 0, b) &
+            Has(x - 1, y + 0, b) &
+            Has(x + 1, y + 0, b) &
+            Has(x + 0, y + 1, b).
+
+    !b[Block], x[Index], y[Index] :
         BlockType(b, "T") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_90") & Reflected(b, 1)) | (Rotated(b, "ROT_270") & Reflected(b, 0))) &
         (x + 1 =< n) &
-        (y + 1 =< n) &
-        (y - 1 >= n) =>
-            Has(x, y, b) &
-            Has(x + 1, y, b) &
-            Has(x, y + 1, b) &
-            Has(x, y - 1, b).
+        (y - 1 >= n) &
+        (y + 1 =< n) =>
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x + 0, y - 1, b) &
+            Has(x + 1, y - 0, b).
 }
 
 structure Packing : Tetriminos {
@@ -278,6 +278,6 @@ structure Packing : Tetriminos {
 }
 
 procedure main(){
-    stdoptions.cpsupport=true
+    // stdoptions.cpsupport=true
     printmodels(modelexpand(TetriminoPacking,Packing))
 }
