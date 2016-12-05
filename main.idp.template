@@ -22,6 +22,8 @@ structure Packing : Tetriminos {
     nS = {nS}
     nT = {nT}
     nL = {nL}
+
+    {reflectionSpecification}
 }
 
 procedure main(){

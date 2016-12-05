@@ -44,11 +44,13 @@ def comp3(t,s,q,i=0):
 def createCompositions(boardSize):
   return compositions3(3, boardSize * boardSize / 4)
 
+INCLUDE_REFLECTIONS = True
+
 # ------------------------------------------------------------------
 # Read number of iterations to run from command line args
 
 DEFAULT_NUM_ITER = 1
-MAX_NUM_ITER = 20
+MAX_NUM_ITER = 5
 
 IDP_TEMPLATE_LOCATION = 'main.idp.template'
 IDP_LOCATION = 'main.idp'
@@ -94,7 +96,11 @@ def runIdp(boardSize):
 
   for (nR, nS, nT, nL) in createCompositions(n):
     numCompositions += 1
-    print numCompositions
+
+    if INCLUDE_REFLECTIONS:
+      reflectionSpecification = ''
+    else:
+      reflectionSpecification = 'Reflected = {}'
 
     templated = multipleReplace(IDP_TEMPLATE, {
       '{nR}': str(nR),
@@ -102,7 +108,8 @@ def runIdp(boardSize):
       '{nT}': str(nT),
       '{nL}': str(nL),
       '{maxIndex}': str(boardSize-1),
-      '{numBlocks}': str(boardSize * boardSize / 4)
+      '{numBlocks}': str(boardSize * boardSize / 4),
+      '{reflectionSpecification}': reflectionSpecification
     })
 
     IDP_FILE = open(IDP_LOCATION, 'w')
@@ -110,7 +117,6 @@ def runIdp(boardSize):
     IDP_FILE.close()
     timer = getTimer()
     output = subprocess.check_output(['idp', IDP_LOCATION, '--nowarnings'])
-    print timer()
     individualTimes.append(timer())
     if output != UNSATISFIABLE_TEXT:
       lines = removeCurlyBraces(
@@ -149,7 +155,6 @@ def runIdp(boardSize):
       output += 'nL: ' + str(nL) + '}'
 
       outputs.append(output)
-      break
   return (outputs, totalTimer(), average(individualTimes), numCompositions)
 
 output = '{'
