@@ -41,14 +41,14 @@ def comp3(t,s,q,i=0):
       for y in comp3(t,s-x,u,i+1):
         yield y            
 
-def createCompositions(size):
-  return compositions3(3, size)
+def createCompositions(boardSize):
+  return compositions3(3, boardSize * boardSize / 4)
 
 # ------------------------------------------------------------------
 # Read number of iterations to run from command line args
 
 DEFAULT_NUM_ITER = 1
-MAX_NUM_ITER = 25
+MAX_NUM_ITER = 20
 
 IDP_TEMPLATE_LOCATION = 'main.idp.template'
 IDP_LOCATION = 'main.idp'
@@ -79,33 +79,49 @@ UNSATISFIABLE_TEXT = 'Unsatisfiable\nNumber of models: 0\n'
 SATISFIABLE_PRETEXT_LEN = len('Number of models: 1\nModel 1\n=======\nstructure  : Tetriminos {\n')
 SATISFIABLE_POSTTEXT_LEN = len(' n = 4\n  nL = 0\n  nR = 0\n  nS = 4\n  nT = 0\n}\n\n')
 
-def runIdp(n):
+def average(arr):
+  s = 0
+  for x in arr:
+    s += x
+  return float(s) / len(arr)
+
+def runIdp(boardSize):
   outputs = []
   totalTimer = getTimer()
 
+  individualTimes = []
+  numCompositions = 0
+
   for (nR, nS, nT, nL) in createCompositions(n):
+    numCompositions += 1
+    print numCompositions
+
     templated = multipleReplace(IDP_TEMPLATE, {
       '{nR}': str(nR),
       '{nS}': str(nS),
       '{nT}': str(nT),
       '{nL}': str(nL),
-      '{n}': str(n)
+      '{maxIndex}': str(boardSize-1),
+      '{numBlocks}': str(boardSize * boardSize / 4)
     })
 
     IDP_FILE = open(IDP_LOCATION, 'w')
     IDP_FILE.write(templated)
     IDP_FILE.close()
+    timer = getTimer()
     output = subprocess.check_output(['idp', IDP_LOCATION, '--nowarnings'])
+    print timer()
+    individualTimes.append(timer())
     if output != UNSATISFIABLE_TEXT:
       lines = removeCurlyBraces(
         output[SATISFIABLE_PRETEXT_LEN: -1 * SATISFIABLE_POSTTEXT_LEN]
       ).splitlines()
       # lines looks like:
-      # BlockType = id, "type"; ...
+      # BlockType = id, 'type'; ...
       # Has = x, y, id; ...
       # Located = id, x, y; ...
       # Reflected = id, reflected; ...
-      # Rotated = id, "rotation"; ...
+      # Rotated = id, 'rotation'; ...
 
       # output = '{ blockTypes: {'
       # blockTypeLine = lines[0].split(' = ')[1]
@@ -133,28 +149,33 @@ def runIdp(n):
       output += 'nL: ' + str(nL) + '}'
 
       outputs.append(output)
-  return (outputs, totalTimer())
+      break
+  return (outputs, totalTimer(), average(individualTimes), numCompositions)
 
 output = '{'
 for iteration in range(1, numIter + 1):
   n = 2 + iteration * 2
   print 'Iteration: ' + str(iteration) + '\nBoard size: ' + str(n) + 'x' + str(n)
-  (outputs, timeTaken) = runIdp(n)
-  output += str(n) + ':{timeTaken: ' + str(timeTaken) + ', outputs: [' + ','.join(outputs) + ']},'
+  (results, timeTaken, averageIdpCall, numCompositions) = runIdp(n)
+  output += str(n) + ':{'
+  output += 'timeTaken: ' + str(timeTaken) + ','
+  output += 'results: [' + ','.join(results) + '],'
+  output += 'avgIdpCall: ' + str(averageIdpCall) + ','
+  output += 'numCompositions: ' + str(numCompositions) + '},'
 output += '}'
 
 HTML_OUTPUT_FILE = 'output.html'
 
-html = """<html>
+html = '''<html>
   <head>
-    <link rel="stylesheet" href="styles.css">
-    <script>var output = """ + output + """;</script>
-    <script src="project.js"></script>
+    <link rel='stylesheet' href='styles.css'>
+    <script>var output = ''' + output + ''';</script>
+    <script src='project.js'></script>
   </head>
   <body>
-    <div id="root">Loading...</div>
+    <div id='root'>Loading...</div>
   </body>
-</html>"""
+</html>'''
 
 file = open(HTML_OUTPUT_FILE, 'w')
 file.write(html)
