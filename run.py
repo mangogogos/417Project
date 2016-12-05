@@ -52,9 +52,9 @@ includeReflections = False
 numIter = DEFAULT_NUM_ITER
 
 def usage(exit = True):
-  print '''\t-n <numIter> or --iter <numIter>\tNumber of iterations
+  print '''Usage:\n\t-n <numIter> or --iter <numIter>\tNumber of iterations
   \t-r or --reflections\t\t\tInclude reflections
-  \t-h or --help\t\t\t\tShows this help message'''
+  \t-h or --help\t\t\t\tShows this help message\n'''
   if exit: sys.exit(2)
 
 try:
@@ -95,9 +95,10 @@ if not selectedN:
   print 'Running for default number of iterations ({:d})'.format(DEFAULT_NUM_ITER)
 
 if includeReflections:
-  print 'Including reflections'
+  includedReflectionsString = 'Program run with reflections included'
 else:
-  print 'Not including reflections'
+  includedReflectionsString =  'Program run with reflections not included'
+print includedReflectionsString
 
 IDP_TEMPLATE_LOCATION = 'main.idp.template'
 IDP_LOCATION = 'main.idp'
@@ -118,13 +119,14 @@ def average(arr):
     s += x
   return float(s) / len(arr)
 
+# Find all integer compositions for the given boardSize, format the IDP_TEMPLATE with the
+# inputs and call idp, parsing and collecting the output, as well as the time taken, into JSON
 def runIdp(boardSize):
   outputs = []
   totalTimer = getTimer()
 
   individualTimes = []
   numCompositions = 0
-  numPackable = 0
 
   didFinish = True
 
@@ -184,8 +186,6 @@ def runIdp(boardSize):
           nL: {:d}
         }}'''.format(str(blockLocations), nR, nS, nT, nL)
         outputs.append(output)
-
-        numPackable += 1
     except KeyboardInterrupt:
       didFinish = False
       break
@@ -194,7 +194,6 @@ def runIdp(boardSize):
     outputs,
     totalTimer(),
     average(individualTimes),
-    numPackable,
     numCompositions,
     didFinish
   )
@@ -208,7 +207,6 @@ for iteration in range(numIter):
     results,
     timeTaken,
     avgIdpCall,
-    numPackable,
     numCompositions,
     didFinish
   ) = runIdp(boardSize)
@@ -218,9 +216,8 @@ for iteration in range(numIter):
     timeTaken: '{:.3f}s',
     results: ['''.format(boardSize, timeTaken) + ','.join(results) + '''],
     avgIdpCall: '{:.3f}s',
-    numPackable: {:d},
     numCompositions: {:d},
-  }},'''.format(avgIdpCall, numPackable, numCompositions)
+  }},'''.format(avgIdpCall, numCompositions)
 
   if not didFinish: break
 output += '}'
@@ -229,19 +226,32 @@ HTML_OUTPUT_FILE = 'output.html'
 
 incompleteWarning = ''
 if not didFinish:
-  incompleteWarning = 'Program was aborted before all iterations could complete'
+  incompleteWarning = 'Program was aborted before all compositions of the last iteration could complete'
 
+# Pass the output into an html file via JSON so that the page can be generated in javascript
 html = '''<html>
   <head>
     <link rel='stylesheet' href='styles.css'>
-    <script>var output = {};</script>
+    <script>
+      try {{
+        eval(`var output = {};`);
+      }} catch(e) {{
+        console.error(e);
+        var output = null;
+      }}
+    </script>
     <script src='project.js'></script>
   </head>
   <body>
+    <div id="title">Tetrimino Packing</div>
+    <div id="subtitle">Jacob Patenaude - 301203788</div>
+    <hr>
+    <div id="includedReflections">{}</div>
+    <hr>
     <div id="root">Loading...</div>
     <div id="incomplete">{}</div>
   </body>
-</html>'''.format(output, incompleteWarning)
+</html>'''.format(output, includedReflectionsString, incompleteWarning)
 
 
 file = open(HTML_OUTPUT_FILE, 'w')
