@@ -1,3 +1,4 @@
+import getopt
 import re
 import sys
 import subprocess
@@ -44,39 +45,68 @@ def comp3(t,s,q,i=0):
 def createCompositions(boardSize):
   return compositions3(3, boardSize * boardSize / 4)
 
-INCLUDE_REFLECTIONS = True
-
-# ------------------------------------------------------------------
-# Read number of iterations to run from command line args
-
 DEFAULT_NUM_ITER = 1
 MAX_NUM_ITER = 5
 
+includeReflections = False
+numIter = DEFAULT_NUM_ITER
+
+def usage(exit = True):
+  print '''\t-n <numIter> or --iter <numIter>\tNumber of iterations
+  \t-r or --reflections\t\t\tInclude reflections
+  \t-h or --help\t\t\t\tShows this help message'''
+  if exit: sys.exit(2)
+
+try:
+  opts, _ = getopt.getopt(sys.argv[1:], 'hrn:',['help', 'reflections', 'iter='])
+except getopt.GetoptError as err:
+  print err
+  usage()
+
+if len(opts) == 0:
+  print 'No options specified. Running anyways with defaults.'
+  usage(False)
+
+selectedN = False
+for opt, arg in opts:
+  if opt in ('-h', '--help'):
+    usage()
+  elif opt in ('-n', '--iter'):
+    selectedN = True
+    try:
+      numIter = int(arg)
+      if (numIter > 0 and numIter <= MAX_NUM_ITER):
+        print 'Running for {:d} iterations'.format(numIter)
+      elif (numIter <= 0):
+        print 'Number of iterations must be positive, defaulting to {:d}'.format(DEFAULT_NUM_ITER)
+      else:
+        print 'Number of iterations selected is too large, limiting to {:d}'.format(MAX_NUM_ITER)
+        numIter = MAX_NUM_ITER
+      if numIter > 1:
+        print 'Warning. Iterations after the first one will likely take many hours to complete.'
+    except ValueError:
+      print'Non numeric number of iterations selected, defaulting to {:d}'.format(DEFAULT_NUM_ITER)
+  elif opt in ('-r', '--reflections'):
+    includeReflections = True
+  else:
+    usage()
+
+if not selectedN:
+  print 'Running for default number of iterations ({:d})'.format(DEFAULT_NUM_ITER)
+
+if includeReflections:
+  print 'Including reflections'
+else:
+  print 'Not including reflections'
+
 IDP_TEMPLATE_LOCATION = 'main.idp.template'
 IDP_LOCATION = 'main.idp'
-
-numIter = DEFAULT_NUM_ITER
-if len(sys.argv) > 1:
-  try:
-    numIter = int(sys.argv[1])
-    if (numIter > 0 and numIter <= MAX_NUM_ITER):
-      print('Running for ' + str(numIter) + ' iterations')
-    elif (numIter <= 0):
-      print('Number of iterations must be positive, defaulting to ' + str(DEFAULT_NUM_ITER))
-    else:
-      print('Number of iterations selected is too large, limiting to ' + str(MAX_NUM_ITER))
-      numIter = MAX_NUM_ITER
-  except ValueError:
-    print('Non numeric number of iterations selected, defaulting to ' + str(DEFAULT_NUM_ITER))
-else:
-  print ('Running for default number of iterations (' + str(DEFAULT_NUM_ITER) + ')')
-
-# ------------------------------------------------------------------
 
 IDP_TEMPLATE_FILE = open('main.idp.template', 'r')
 IDP_TEMPLATE = IDP_TEMPLATE_FILE.read()
 IDP_TEMPLATE_FILE.close()
 
+# Hard-code pieces of idp output to allow for easy extraction of data
 UNSATISFIABLE_TEXT = 'Unsatisfiable\nNumber of models: 0\n'
 SATISFIABLE_PRETEXT_LEN = len('Number of models: 1\nModel 1\n=======\nstructure  : Tetriminos {\n')
 SATISFIABLE_POSTTEXT_LEN = len(' n = 4\n  nL = 0\n  nR = 0\n  nS = 4\n  nT = 0\n}\n\n')
@@ -94,14 +124,15 @@ def runIdp(boardSize):
 
   individualTimes = []
   numCompositions = 0
+  numPackable = 0
 
   didFinish = True
 
-  for (nR, nS, nT, nL) in createCompositions(n):
+  for (nR, nS, nT, nL) in createCompositions(boardSize):
     try:
       numCompositions += 1
 
-      if INCLUDE_REFLECTIONS:
+      if includeReflections:
         reflectionSpecification = ''
       else:
         reflectionSpecification = 'Reflected = {}'
@@ -111,7 +142,7 @@ def runIdp(boardSize):
         '{nS}': str(nS),
         '{nT}': str(nT),
         '{nL}': str(nL),
-        '{maxIndex}': str(boardSize-1),
+        '{maxIndex}': str(boardSize - 1),
         '{numBlocks}': str(boardSize * boardSize / 4),
         '{reflectionSpecification}': reflectionSpecification
       })
@@ -126,6 +157,7 @@ def runIdp(boardSize):
         lines = removeCurlyBraces(
           output[SATISFIABLE_PRETEXT_LEN: -1 * SATISFIABLE_POSTTEXT_LEN]
         ).splitlines()
+
         # lines looks like:
         # BlockType = id, 'type'; ...
         # Has = x, y, id; ...
@@ -133,47 +165,63 @@ def runIdp(boardSize):
         # Reflected = id, reflected; ...
         # Rotated = id, 'rotation'; ...
 
-        # output = '{ blockTypes: {'
-        # blockTypeLine = lines[0].split(' = ')[1]
-        # for blockType in blockTypeLine.split(';'):
-        #   blockTypePieces = blockType.split(',')
-        #   blockId = blockTypePieces[0].strip()
-        #   blockType = blockTypePieces[1].strip()
-        #   output += blockId + ':' + blockType + ','
-
         output = '{ blockLocations:'
         blockLocations = dict()
         hasLine = lines[1].split(' = ')[1]
         for has in hasLine.split(';'):
           hasPieces = has.split(',')
-          x = hasPieces[0].strip()
-          y = hasPieces[1].strip()
-          blockId = hasPieces[2].strip()
+          x = int(hasPieces[0])
+          y = int(hasPieces[1])
+          blockId = int(hasPieces[2])
           if blockLocations.get(blockId) is None:
             blockLocations[blockId] = []
           blockLocations[blockId].append([x, y])
-        output += str(blockLocations) + ','
-        output += 'nR: ' + str(nR) + ','
-        output += 'nS: ' + str(nS) + ','
-        output += 'nT: ' + str(nT) + ','
-        output += 'nL: ' + str(nL) + '}'
+
+        output += '''{},
+          nR: {:d},
+          nS: {:d},
+          nT: {:d},
+          nL: {:d}
+        }}'''.format(str(blockLocations), nR, nS, nT, nL)
         outputs.append(output)
-        print 'done ' + str(numCompositions)
+
+        numPackable += 1
     except KeyboardInterrupt:
       didFinish = False
       break
-  return (outputs, totalTimer(), average(individualTimes), numCompositions, didFinish)
+
+  return (
+    outputs,
+    totalTimer(),
+    average(individualTimes),
+    numPackable,
+    numCompositions,
+    didFinish
+  )
 
 output = '{'
 for iteration in range(numIter):
-  n = 4 + iteration * 2
-  print 'Iteration: ' + str(iteration + 1) + '\nBoard size: ' + str(n) + 'x' + str(n)
-  (results, timeTaken, averageIdpCall, numCompositions, didFinish) = runIdp(n)
-  output += str(n) + ':{'
-  output += 'timeTaken: ' + str(timeTaken) + ','
-  output += 'results: [' + ','.join(results) + '],'
-  output += 'avgIdpCall: ' + str(averageIdpCall) + ','
-  output += 'numCompositions: ' + str(numCompositions) + '},'
+  boardSize = 4 + iteration * 2
+  print 'Iteration: {0:d}\nBoard size: {1:d}x{1:d}'.format(iteration + 1, boardSize)
+
+  (
+    results,
+    timeTaken,
+    avgIdpCall,
+    numPackable,
+    numCompositions,
+    didFinish
+  ) = runIdp(boardSize)
+
+  output += '''{:d}:
+  {{
+    timeTaken: '{:.3f}s',
+    results: ['''.format(boardSize, timeTaken) + ','.join(results) + '''],
+    avgIdpCall: '{:.3f}s',
+    numPackable: {:d},
+    numCompositions: {:d},
+  }},'''.format(avgIdpCall, numPackable, numCompositions)
+
   if not didFinish: break
 output += '}'
 
@@ -181,19 +229,19 @@ HTML_OUTPUT_FILE = 'output.html'
 
 incompleteWarning = ''
 if not didFinish:
-  incompleteWarning = 'Warning: Program was aborted before all iterations could complete'
+  incompleteWarning = 'Program was aborted before all iterations could complete'
 
 html = '''<html>
   <head>
     <link rel='stylesheet' href='styles.css'>
-    <script>var output = ''' + output + ''';</script>
+    <script>var output = {};</script>
     <script src='project.js'></script>
   </head>
   <body>
-    <div id='root'>Loading...</div>
-    <div>''' + incompleteWarning + '''</div>
+    <div id="root">Loading...</div>
+    <div id="incomplete">{}</div>
   </body>
-</html>'''
+</html>'''.format(output, incompleteWarning)
 
 
 file = open(HTML_OUTPUT_FILE, 'w')

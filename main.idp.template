@@ -38,6 +38,8 @@ theory TetriminoPacking : Tetriminos {
     #{ b[Block] : BlockType(b, "T") } = nT.
     #{ b[Block] : BlockType(b, "L") } = nL.
 
+    (nT + nL) % 2 = 0.
+
     // All cells have a block
     !x[Index], y[Index] : ?1 b[Block] : Has(x, y, b).
 
