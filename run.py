@@ -82,6 +82,7 @@ SATISFIABLE_PRETEXT_LEN = len('Number of models: 1\nModel 1\n=======\nstructure 
 SATISFIABLE_POSTTEXT_LEN = len(' n = 4\n  nL = 0\n  nR = 0\n  nS = 4\n  nT = 0\n}\n\n')
 
 def average(arr):
+  if (len(arr) == 0): return 0
   s = 0
   for x in arr:
     s += x
@@ -94,101 +95,109 @@ def runIdp(boardSize):
   individualTimes = []
   numCompositions = 0
 
+  didFinish = True
+
   for (nR, nS, nT, nL) in createCompositions(n):
-    numCompositions += 1
+    try:
+      numCompositions += 1
 
-    if INCLUDE_REFLECTIONS:
-      reflectionSpecification = ''
-    else:
-      reflectionSpecification = 'Reflected = {}'
+      if INCLUDE_REFLECTIONS:
+        reflectionSpecification = ''
+      else:
+        reflectionSpecification = 'Reflected = {}'
 
-    templated = multipleReplace(IDP_TEMPLATE, {
-      '{nR}': str(nR),
-      '{nS}': str(nS),
-      '{nT}': str(nT),
-      '{nL}': str(nL),
-      '{maxIndex}': str(boardSize-1),
-      '{numBlocks}': str(boardSize * boardSize / 4),
-      '{reflectionSpecification}': reflectionSpecification
-    })
+      templated = multipleReplace(IDP_TEMPLATE, {
+        '{nR}': str(nR),
+        '{nS}': str(nS),
+        '{nT}': str(nT),
+        '{nL}': str(nL),
+        '{maxIndex}': str(boardSize-1),
+        '{numBlocks}': str(boardSize * boardSize / 4),
+        '{reflectionSpecification}': reflectionSpecification
+      })
 
-    IDP_FILE = open(IDP_LOCATION, 'w')
-    IDP_FILE.write(templated)
-    IDP_FILE.close()
-    timer = getTimer()
-    output = subprocess.check_output(['idp', IDP_LOCATION, '--nowarnings'])
-    individualTimes.append(timer())
-    if output != UNSATISFIABLE_TEXT:
-      lines = removeCurlyBraces(
-        output[SATISFIABLE_PRETEXT_LEN: -1 * SATISFIABLE_POSTTEXT_LEN]
-      ).splitlines()
-      # lines looks like:
-      # BlockType = id, 'type'; ...
-      # Has = x, y, id; ...
-      # Located = id, x, y; ...
-      # Reflected = id, reflected; ...
-      # Rotated = id, 'rotation'; ...
+      IDP_FILE = open(IDP_LOCATION, 'w')
+      IDP_FILE.write(templated)
+      IDP_FILE.close()
+      timer = getTimer()
+      output = subprocess.check_output(['idp', IDP_LOCATION, '--nowarnings'])
+      individualTimes.append(timer())
+      if output != UNSATISFIABLE_TEXT:
+        lines = removeCurlyBraces(
+          output[SATISFIABLE_PRETEXT_LEN: -1 * SATISFIABLE_POSTTEXT_LEN]
+        ).splitlines()
+        # lines looks like:
+        # BlockType = id, 'type'; ...
+        # Has = x, y, id; ...
+        # Located = id, x, y; ...
+        # Reflected = id, reflected; ...
+        # Rotated = id, 'rotation'; ...
 
-      # output = '{ blockTypes: {'
-      # blockTypeLine = lines[0].split(' = ')[1]
-      # for blockType in blockTypeLine.split(';'):
-      #   blockTypePieces = blockType.split(',')
-      #   blockId = blockTypePieces[0].strip()
-      #   blockType = blockTypePieces[1].strip()
-      #   output += blockId + ':' + blockType + ','
+        # output = '{ blockTypes: {'
+        # blockTypeLine = lines[0].split(' = ')[1]
+        # for blockType in blockTypeLine.split(';'):
+        #   blockTypePieces = blockType.split(',')
+        #   blockId = blockTypePieces[0].strip()
+        #   blockType = blockTypePieces[1].strip()
+        #   output += blockId + ':' + blockType + ','
 
-      output = '{ blockLocations:'
-      blockLocations = dict()
-      hasLine = lines[1].split(' = ')[1]
-      for has in hasLine.split(';'):
-        hasPieces = has.split(',')
-        x = hasPieces[0].strip()
-        y = hasPieces[1].strip()
-        blockId = hasPieces[2].strip()
-        if blockLocations.get(blockId) is None:
-          blockLocations[blockId] = []
-        blockLocations[blockId].append([x, y])
-      output += str(blockLocations) + ','
-      output += 'nR: ' + str(nR) + ','
-      output += 'nS: ' + str(nS) + ','
-      output += 'nT: ' + str(nT) + ','
-      output += 'nL: ' + str(nL) + '}'
-
-      outputs.append(output)
-  return (outputs, totalTimer(), average(individualTimes), numCompositions)
+        output = '{ blockLocations:'
+        blockLocations = dict()
+        hasLine = lines[1].split(' = ')[1]
+        for has in hasLine.split(';'):
+          hasPieces = has.split(',')
+          x = hasPieces[0].strip()
+          y = hasPieces[1].strip()
+          blockId = hasPieces[2].strip()
+          if blockLocations.get(blockId) is None:
+            blockLocations[blockId] = []
+          blockLocations[blockId].append([x, y])
+        output += str(blockLocations) + ','
+        output += 'nR: ' + str(nR) + ','
+        output += 'nS: ' + str(nS) + ','
+        output += 'nT: ' + str(nT) + ','
+        output += 'nL: ' + str(nL) + '}'
+        outputs.append(output)
+        print 'done ' + str(numCompositions)
+    except KeyboardInterrupt:
+      didFinish = False
+      break
+  return (outputs, totalTimer(), average(individualTimes), numCompositions, didFinish)
 
 output = '{'
 for iteration in range(numIter):
   n = 4 + iteration * 2
   print 'Iteration: ' + str(iteration + 1) + '\nBoard size: ' + str(n) + 'x' + str(n)
-  try:
-    (results, timeTaken, averageIdpCall, numCompositions) = runIdp(n)
-  except KeyboardInterrupt:
-    print "\nAborting. Only completed " + str(iteration) + " iterations out of " + str(numIter)
-    break
+  (results, timeTaken, averageIdpCall, numCompositions, didFinish) = runIdp(n)
   output += str(n) + ':{'
   output += 'timeTaken: ' + str(timeTaken) + ','
   output += 'results: [' + ','.join(results) + '],'
   output += 'avgIdpCall: ' + str(averageIdpCall) + ','
   output += 'numCompositions: ' + str(numCompositions) + '},'
+  if not didFinish: break
 output += '}'
 
-if (iteration > 0):
-  HTML_OUTPUT_FILE = 'output.html'
+HTML_OUTPUT_FILE = 'output.html'
 
-  html = '''<html>
-    <head>
-      <link rel='stylesheet' href='styles.css'>
-      <script>var output = ''' + output + ''';</script>
-      <script src='project.js'></script>
-    </head>
-    <body>
-      <div id='root'>Loading...</div>
-    </body>
-  </html>'''
+incompleteWarning = ''
+if not didFinish:
+  incompleteWarning = 'Warning: Program was aborted before all iterations could complete'
 
-  file = open(HTML_OUTPUT_FILE, 'w')
-  file.write(html)
-  file.close()
+html = '''<html>
+  <head>
+    <link rel='stylesheet' href='styles.css'>
+    <script>var output = ''' + output + ''';</script>
+    <script src='project.js'></script>
+  </head>
+  <body>
+    <div id='root'>Loading...</div>
+    <div>''' + incompleteWarning + '''</div>
+  </body>
+</html>'''
 
-  webbrowser.open_new_tab(HTML_OUTPUT_FILE)
+
+file = open(HTML_OUTPUT_FILE, 'w')
+file.write(html)
+file.close()
+
+webbrowser.open_new_tab(HTML_OUTPUT_FILE)
