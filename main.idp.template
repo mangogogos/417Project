@@ -1,5 +1,5 @@
 vocabulary Tetriminos {
-    type Index = {1..4} isa int
+    type Index = {0..3} isa int
     type Block = {1..4} isa int
     type Type = { "R"; "S"; "T"; "L" } isa char
     type Rotation = { "ROT_0"; "ROT_90"; "ROT_180"; "ROT_270" } isa string
@@ -18,6 +18,20 @@ vocabulary Tetriminos {
     Reflected(Block, Reflection)
     Has(Index, Index, Block)
 }
+
+structure Packing : Tetriminos {
+    // Define the inputs
+    nR = {nR}
+    nS = {nS}
+    nT = {nT}
+    nL = {nL}
+    n = {n}
+}
+
+procedure main(){
+    printmodels(modelexpand(TetriminoPacking,Packing))
+}
+
 
 theory TetriminoPacking : Tetriminos {
     nR >= 0.
@@ -260,17 +274,4 @@ theory TetriminoPacking : Tetriminos {
             Has(x + 0, y + 1, b) &
             Has(x + 0, y - 1, b) &
             Has(x + 1, y - 0, b).
-}
-
-structure Packing : Tetriminos {
-    // Define the inputs
-    nR = 0
-    nS = 0
-    nT = 4
-    nL = 0
-    n = 4
-}
-
-procedure main(){
-    printmodels(modelexpand(TetriminoPacking,Packing))
 }
