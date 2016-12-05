@@ -59,7 +59,7 @@ numIter = DEFAULT_NUM_ITER
 if len(sys.argv) > 1:
   try:
     numIter = int(sys.argv[1])
-    if (numIter > 0 and numIter < MAX_NUM_ITER):
+    if (numIter > 0 and numIter <= MAX_NUM_ITER):
       print('Running for ' + str(numIter) + ' iterations')
     elif (numIter <= 0):
       print('Number of iterations must be positive, defaulting to ' + str(DEFAULT_NUM_ITER))
@@ -173,21 +173,22 @@ for iteration in range(numIter):
   output += 'numCompositions: ' + str(numCompositions) + '},'
 output += '}'
 
-HTML_OUTPUT_FILE = 'output.html'
+if (iteration > 0):
+  HTML_OUTPUT_FILE = 'output.html'
 
-html = '''<html>
-  <head>
-    <link rel='stylesheet' href='styles.css'>
-    <script>var output = ''' + output + ''';</script>
-    <script src='project.js'></script>
-  </head>
-  <body>
-    <div id='root'>Loading...</div>
-  </body>
-</html>'''
+  html = '''<html>
+    <head>
+      <link rel='stylesheet' href='styles.css'>
+      <script>var output = ''' + output + ''';</script>
+      <script src='project.js'></script>
+    </head>
+    <body>
+      <div id='root'>Loading...</div>
+    </body>
+  </html>'''
 
-file = open(HTML_OUTPUT_FILE, 'w')
-file.write(html)
-file.close()
+  file = open(HTML_OUTPUT_FILE, 'w')
+  file.write(html)
+  file.close()
 
-webbrowser.open_new_tab(HTML_OUTPUT_FILE)
+  webbrowser.open_new_tab(HTML_OUTPUT_FILE)
