@@ -158,10 +158,14 @@ def runIdp(boardSize):
   return (outputs, totalTimer(), average(individualTimes), numCompositions)
 
 output = '{'
-for iteration in range(1, numIter + 1):
-  n = 2 + iteration * 2
-  print 'Iteration: ' + str(iteration) + '\nBoard size: ' + str(n) + 'x' + str(n)
-  (results, timeTaken, averageIdpCall, numCompositions) = runIdp(n)
+for iteration in range(numIter):
+  n = 4 + iteration * 2
+  print 'Iteration: ' + str(iteration + 1) + '\nBoard size: ' + str(n) + 'x' + str(n)
+  try:
+    (results, timeTaken, averageIdpCall, numCompositions) = runIdp(n)
+  except KeyboardInterrupt:
+    print "\nAborting. Only completed " + str(iteration) + " iterations out of " + str(numIter)
+    break
   output += str(n) + ':{'
   output += 'timeTaken: ' + str(timeTaken) + ','
   output += 'results: [' + ','.join(results) + '],'
