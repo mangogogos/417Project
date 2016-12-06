@@ -91,7 +91,7 @@ theory TetrominoPacking : Tetrominos {
 
     !b[Block], x[XIndex], y[YIndex] :
         BlockType(b, "S") &
-        Located(b, x, y) & 
+        Located(b, x, y) &
         ((Rotated(b, "ROT_0") & ~Reflected(b)) | (Rotated(b, "ROT_90") & Reflected(b))) =>
             (x + 1 =< {maxXIndex}) &
             (y - 1 >= 0) &
