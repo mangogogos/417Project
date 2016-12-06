@@ -60,24 +60,25 @@ function generateColors(nColors) {
   return colors;
 }
 
-function generateRow({ blockLocations, nR, nS, nT, nL, nZ }, boardSize) {
-  container = document.createElement('div');
-  container.className = 'rowContainer';
+function generateComposition({ blockLocations, nR, nS, nT, nL, nZ }, numRows, numColumns) {
+  composotionContainer = document.createElement('div');
+  composotionContainer.className = 'composotionContainer';
 
-  metaContainer = document.createElement('div');
-  metaContainer.className = 'metaContainer';
-  metaContainer.appendChild(document.createTextNode(`nR=${nR}`));
-  metaContainer.appendChild(document.createElement('br'));
-  metaContainer.appendChild(document.createTextNode(`nS=${nS}`));
-  metaContainer.appendChild(document.createElement('br'));
-  metaContainer.appendChild(document.createTextNode(`nT=${nT}`));
-  metaContainer.appendChild(document.createElement('br'));
-  metaContainer.appendChild(document.createTextNode(`nL=${nL}`));
-  metaContainer.appendChild(document.createElement('br'));
-  metaContainer.appendChild(document.createTextNode(`nZ=${nZ}`));
-  container.appendChild(metaContainer);
+  composotionMetaContainer = document.createElement('div');
+  composotionMetaContainer.className = 'composotionMetaContainer';
+  composotionMetaContainer.appendChild(document.createTextNode(`nR=${nR}`));
+  composotionMetaContainer.appendChild(document.createElement('br'));
+  composotionMetaContainer.appendChild(document.createTextNode(`nS=${nS}`));
+  composotionMetaContainer.appendChild(document.createElement('br'));
+  composotionMetaContainer.appendChild(document.createTextNode(`nT=${nT}`));
+  composotionMetaContainer.appendChild(document.createElement('br'));
+  composotionMetaContainer.appendChild(document.createTextNode(`nL=${nL}`));
+  composotionMetaContainer.appendChild(document.createElement('br'));
+  composotionMetaContainer.appendChild(document.createTextNode(`nZ=${nZ}`));
+  composotionContainer.appendChild(composotionMetaContainer);
 
   const blockColors = generateColors(nR + nS + nT + nL + nZ);
+
   const cellColors = [];
   const cellBlockIds = [];
 
@@ -85,7 +86,9 @@ function generateRow({ blockLocations, nR, nS, nT, nL, nZ }, boardSize) {
   {
     const color = blockColors[blockId];
 
-    blockLocations[blockId].forEach(([x, y]) =>
+    // Technically this is supposed to be x, y but I'm redefining the origin to be the top left as opposed to the top right for easier html rendering
+    // I suppose I couuuulld go back and rewrite my idp specification to use a top-left origin but why would I want to do that when this is easier?
+    blockLocations[blockId].forEach(([y, x]) =>
     {
       cellColors[x] = cellColors[x] || [];
       cellColors[x][y] = color;
@@ -95,25 +98,25 @@ function generateRow({ blockLocations, nR, nS, nT, nL, nZ }, boardSize) {
     });
   });
 
-  const tilingContainer = document.createElement('div');
-  tilingContainer.className = 'tilingContainer';
+  const compositionTilingContainer = document.createElement('div');
+  compositionTilingContainer.className = 'compositionTilingContainer';
 
-  for (let x = 0; x < boardSize; x++) {
-    const tilingRow = document.createElement('div');
-    tilingRow.className = 'row';
-    for (let y = 0; y < boardSize; y++) {
+  for (let y = 0; y < numColumns; y++) {
+    const tilingColumn = document.createElement('div');
+    tilingColumn.className = 'column';
+    for (let x = 0; x < numRows; x++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.style.backgroundColor = cellColors[x][y];
       cell.appendChild(document.createTextNode(cellBlockIds[x][y]));
-      tilingRow.appendChild(cell);
+      tilingColumn.appendChild(cell);
     }
-    tilingContainer.appendChild(tilingRow);
+    compositionTilingContainer.appendChild(tilingColumn);
   }
 
-  container.appendChild(tilingContainer);
+  composotionContainer.appendChild(compositionTilingContainer);
 
-  return container;
+  return composotionContainer;
 }
 
 window.onload = function onLoad() {
@@ -121,16 +124,9 @@ window.onload = function onLoad() {
 
   // otherwise output was not generated or passed correctly
   if (output) {
-    Object.keys(output).forEach((boardSize, iterationNumber) =>
+    output.forEach(({ results, avgIdpCall, numCompositions, timeTaken, numRows, numColumns }, iterationNumber) =>
     {
       iterationNumber += 1; // index by 1 instead of by 0
-
-      const {
-        results,
-        avgIdpCall,
-        numCompositions,
-        timeTaken,
-      } = output[boardSize];
 
       numPackable = results.length;
 
@@ -139,7 +135,7 @@ window.onload = function onLoad() {
       iterationMetaContainer.className = 'iterationMeta';
       iterationMetaContainer.appendChild(document.createTextNode(`Iteration number: ${iterationNumber}`));
       iterationMetaContainer.appendChild(document.createElement('br'));
-      iterationMetaContainer.appendChild(document.createTextNode(`Board size: ${boardSize}x${boardSize}`));
+      iterationMetaContainer.appendChild(document.createTextNode(`Board size: ${numRows}x${numColumns}`));
       iterationMetaContainer.appendChild(document.createElement('br'));
       iterationMetaContainer.appendChild(document.createTextNode(`Average IDP call: ${avgIdpCall}`));
       iterationMetaContainer.appendChild(document.createElement('br'));
@@ -150,7 +146,7 @@ window.onload = function onLoad() {
       iterationRoot.appendChild(iterationMetaContainer);
 
       for (composotion of results) {
-        iterationRoot.appendChild(generateRow(composotion, boardSize));
+        iterationRoot.appendChild(generateComposition(composotion, numRows, numColumns));
       }
 
       rootElement.appendChild(iterationRoot);

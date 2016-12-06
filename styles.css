@@ -25,32 +25,32 @@ div#incomplete {
   color: red;
 }
 
-div.cell {
-  width: 20px;
-  height: 20px;
-  margin: 1px;
-  text-align: center;
+div.iterationMeta {
+  font-size: 12pt;
 }
 
-div.row {
-  display: inline-block;
-}
-
-div.tilingContainer {
-  display: inline-block;
-  background-color: #000000;
-}
-
-div.rowContainer {
+div.composotionContainer {
   display: inline-block;
   margin: 10px;
   margin-left: 0px;
 }
 
-div.iterationMeta {
-  font-size: 12pt;
+div.composotionMetaContainer {
+  font-size: 10pt;
 }
 
-div.metaContainer {
-  font-size: 10pt;
+div.compositionTilingContainer {
+  display: inline-block;
+  background-color: #000000;
+}
+
+div.column {
+  display: inline-block;
+}
+
+div.cell {
+  width: 20px;
+  height: 20px;
+  margin: 1px;
+  text-align: center;
 }

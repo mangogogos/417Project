@@ -43,54 +43,114 @@ def comp3(t,s,q,i=0):
       for y in comp3(t,s-x,u,i+1):
         yield y            
 
-def createCompositions(boardSize, includeZ = False):
+def createCompositions(numRows, numColumns, includeZ = False):
   numTypes = 4
   if includeZ: numTypes += 1
-  return compositions3(numTypes - 1, boardSize * boardSize / 4)
+  return compositions3(numTypes - 1, numRows * numColumns / 4)
 
-DEFAULT_NUM_ITER = 2
-MAX_NUM_ITER = 5
+def getBoardSizes(maxBoardSize):
+  sizes = []
+  for a in range(2, maxBoardSize + 1):
+    for b in range(a, maxBoardSize + 1):
+      if (a * b) % 4 is not 0: continue
+      sizes.append([a, b])
+  return sizes
+
+DEFAULT_BOARD_SIZE = 4
+MAX_BOARD_SIZE = 8
 
 includeReflections = False
 includeZType = False
-numIter = DEFAULT_NUM_ITER
 
-def usage(exit = True):
-  print '''Usage:\n\t-n <numIter> or --iter <numIter>\tNumber of iterations (Default: 2)
-  \t-r or --reflections\t\t\tInclude reflections (Default: False)
-  \t-z or --ztype\t\t\t\tInclude Z-pieces (Default: False)
-  \t-h or --help\t\t\t\tShows this help message\n'''
-  if exit: sys.exit(2)
+def usage():
+  print '''Usage:\n  -n <numRows> or --numrows <numRows>\t\tSpecifies the height of the board (Overridden by --boardsize)
+  -m <numColumns> or --numcolumns <numColumns>\tSpecifies the width of the board (Overridden by --boardsize)
+  -b <maxSize> or --boardsize <maxSize>\t\tSpecifies the maximum board size.
+                                     \t\tWill run through all possible heights and widths up to
+                                     \t\t<maxSize>x<maxSize> (Default 4)
+  -r or --reflections\t\t\t\tInclude reflections (Default: False)
+  -z or --ztype\t\t\t\t\tInclude Z-pieces (Default: False)
+  -h or --help\t\t\t\t\tShows this help message\n'''
+  sys.exit(2)
 
 try:
-  opts, _ = getopt.getopt(sys.argv[1:], 'hrzn:',['help', 'reflections', 'ztype', 'iter='])
+  opts, _ = getopt.getopt(sys.argv[1:], 'hrzn:m:b:',['help', 'reflections', 'ztype', 'numrows=', 'numcolumns=', 'boardsize='])
 except getopt.GetoptError as err:
   print err
   usage()
 
-if len(opts) == 0:
-  print 'No options specified. Running anyways with defaults.'
-  usage(False)
-
 selectedN = False
+selectedM = False
+selectedBoardSize = False
+
+boardSizes = []
+
+def setNandM(n, m):
+  if (n * m) % 4 is not 0:
+    print 'Invalid numrows and numcolumns. Their product must be divisible by 4'
+    sys.exit(2)
+  boardSizes.append([n, m])
+
 for opt, arg in opts:
   if opt in ('-h', '--help'):
     usage()
-  elif opt in ('-n', '--iter'):
-    selectedN = True
+  elif opt in ('-n', '--numrows'):
+    if selectedBoardSize:
+      print 'Cannot use -b and -n together. Overriding numrows with boardsize'
+      continue
     try:
-      numIter = int(arg)
-      if (numIter > 0 and numIter <= MAX_NUM_ITER):
-        print 'Running for {:d} iterations'.format(numIter)
-      elif (numIter <= 0):
-        print 'Number of iterations must be positive, defaulting to {:d}'.format(DEFAULT_NUM_ITER)
-      else:
-        print 'Number of iterations selected is too large, limiting to {:d}'.format(MAX_NUM_ITER)
-        numIter = MAX_NUM_ITER
-      if numIter > 2:
-        print 'Warning. Iterations after the second one will likely take many hours to complete.'
+      n = int(arg)
+      if n <= 0:
+        print 'Number of rows must be positive, defaulting to {:d}'.format(DEFAULT_BOARD_SIZE)
+        n = DEFAULT_BOARD_SIZE
+      elif n > MAX_BOARD_SIZE:
+        print 'Number of rows selected is too large, limiting to {:d}'.format(MAX_BOARD_SIZE)
+        n = MAX_BOARD_SIZE
     except ValueError:
-      print'Non numeric number of iterations selected, defaulting to {:d}'.format(DEFAULT_NUM_ITER)
+      print'Non numeric number of rows selected, defaulting to {:d}'.format(DEFAULT_BOARD_SIZE)
+      n = DEFAULT_BOARD_SIZE
+    if selectedM:
+      setNandM(n, m)
+    else:
+      selectedN = True
+  elif opt in ('-m', '--numcolumns'):
+    if selectedBoardSize:
+      print 'Cannot use -b and -m together. Overriding numcolumns with boardsize'
+      continue
+    try:
+      m = int(arg)
+      if m <= 0:
+        print 'Number of columns must be positive, defaulting to {:d}'.format(DEFAULT_BOARD_SIZE)
+        m = DEFAULT_BOARD_SIZE
+      elif m > MAX_BOARD_SIZE:
+        print 'Number of columns selected is too large, limiting to {:d}'.format(MAX_BOARD_SIZE)
+        m = MAX_BOARD_SIZE
+    except ValueError:
+      print'Non numeric number of columns selected, defaulting to {:d}'.format(DEFAULT_BOARD_SIZE)
+      m = DEFAULT_BOARD_SIZE
+    if selectedN:
+      setNandM(n, m)
+    else:
+      selectedM = True
+  elif opt in ('-b', '--boardsize'):
+    if (len(boardSizes) > 0):
+      print 'Warning. Overriding chosen numrows and numcolumns with a range of board sizes'
+    try:
+      maxBoardSize = int(arg)
+      if maxBoardSize < 2:
+        print 'Board size must be at least 2, defaulting to {:d}'.format(DEFAULT_BOARD_SIZE)
+        maxBoardSize = DEFAULT_BOARD_SIZE
+      elif maxBoardSize > MAX_BOARD_SIZE:
+        print 'Board size selected is too large, limiting to {:d}'.format(MAX_BOARD_SIZE)
+        maxBoardSize = MAX_BOARD_SIZE
+      elif maxBoardSize % 2 is not 0:
+        print 'Board size must be even. Decrementing selected size by 1'
+        maxBoardSize -= 1
+    except ValueError:
+      print'Non numeric board size selected, defaulting to {:d}'.format(DEFAULT_BOARD_SIZE)
+      maxBoardSize = DEFAULT_BOARD_SIZE
+    boardSizes = getBoardSizes(maxBoardSize)
+    selectedBoardSize = True
   elif opt in ('-r', '--reflections'):
     includeReflections = True
   elif opt in ('-z', '--ztype'):
@@ -98,8 +158,16 @@ for opt, arg in opts:
   else:
     usage()
 
-if not selectedN:
-  print 'Running for default number of iterations ({:d})'.format(DEFAULT_NUM_ITER)
+if len(boardSizes) == 0:
+  if selectedN:
+    print 'Number of columns not selected. Using the same value as the given number of rows.'
+    setNandM(n, n)
+  elif selectedM:
+    print 'Number of rows not selected. Using the same value as the given number of columns.'
+    setNandM(m, m)
+  else:
+    print 'No board size selected. Defaulting to all boards up to {0:d}x{0:d}'.format(DEFAULT_BOARD_SIZE)
+    boardSizes = getBoardSizes(DEFAULT_BOARD_SIZE)
 
 if includeReflections:
   includedReflectionsString = 'Program run with reflections included'
@@ -138,7 +206,7 @@ def average(arr):
 
 # Find all integer compositions for the given boardSize, format the IDP_TEMPLATE with the
 # inputs and call idp, parsing and collecting the output, as well as the time taken, into JSON
-def runIdp(boardSize):
+def runIdp(numRows, numColumns):
   outputs = []
   totalTimer = getTimer()
 
@@ -147,7 +215,7 @@ def runIdp(boardSize):
 
   didFinish = True
 
-  for composition in createCompositions(boardSize, includeZType):
+  for composition in createCompositions(numRows, numColumns, includeZType):
     nR = composition[0]
     nS = composition[1]
     nT = composition[2]
@@ -168,8 +236,9 @@ def runIdp(boardSize):
         '{nT}': str(nT),
         '{nL}': str(nL),
         '{nZ}': str(nZ),
-        '{maxIndex}': str(boardSize - 1),
-        '{numBlocks}': str(boardSize * boardSize / 4),
+        '{maxXIndex}': str(numColumns - 1),
+        '{maxYIndex}': str(numRows - 1),
+        '{numBlocks}': str(numRows * numColumns / 4),
         '{reflectionSpecification}': reflectionSpecification,
         '{zCommentOpen}': zCommentOpen,
         '{zCommentClose}': zCommentClose
@@ -225,10 +294,11 @@ def runIdp(boardSize):
     didFinish
   )
 
-output = '{'
-for iteration in range(numIter):
-  boardSize = 2 + iteration * 2
-  print 'Iteration: {0:d}\nBoard size: {1:d}x{1:d}'.format(iteration + 1, boardSize)
+output = '['
+for (iteration, boardSize) in enumerate(boardSizes):
+  (numRows, numColumns) = boardSize
+
+  print 'Iteration: {:d}\nBoard size: {:d}x{:d}'.format(iteration + 1, numRows, numColumns)
 
   (
     results,
@@ -236,18 +306,20 @@ for iteration in range(numIter):
     avgIdpCall,
     numCompositions,
     didFinish
-  ) = runIdp(boardSize)
+  ) = runIdp(numRows, numColumns)
 
-  output += '''{:d}:
+  output += '''
   {{
+    numRows: {:d},
+    numColumns: {:d},
     timeTaken: '{:.3f}s',
-    results: ['''.format(boardSize, timeTaken) + ','.join(results) + '''],
+    results: ['''.format(numRows, numColumns, timeTaken) + ','.join(results) + '''],
     avgIdpCall: '{:.3f}s',
     numCompositions: {:d},
   }},'''.format(avgIdpCall, numCompositions)
 
   if not didFinish: break
-output += '}'
+output += ']'
 
 HTML_OUTPUT_FILE = 'output.html'
 
