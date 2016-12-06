@@ -60,7 +60,7 @@ function generateColors(nColors) {
   return colors;
 }
 
-function generateRow({ blockLocations, nR, nS, nT, nL }, boardSize) {
+function generateRow({ blockLocations, nR, nS, nT, nL, nZ }, boardSize) {
   container = document.createElement('div');
   container.className = 'rowContainer';
 
@@ -73,9 +73,11 @@ function generateRow({ blockLocations, nR, nS, nT, nL }, boardSize) {
   metaContainer.appendChild(document.createTextNode(`nT=${nT}`));
   metaContainer.appendChild(document.createElement('br'));
   metaContainer.appendChild(document.createTextNode(`nL=${nL}`));
+  metaContainer.appendChild(document.createElement('br'));
+  metaContainer.appendChild(document.createTextNode(`nZ=${nZ}`));
   container.appendChild(metaContainer);
 
-  const blockColors = generateColors(nR + nS + nT + nL);
+  const blockColors = generateColors(nR + nS + nT + nL + nZ);
   const cellColors = [];
   const cellBlockIds = [];
 

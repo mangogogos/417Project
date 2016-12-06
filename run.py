@@ -15,13 +15,14 @@ def multipleReplace(text, replacementsDict):
   pattern = '|'.join(map(re.escape, replacementsDict))
   return re.sub(pattern, lambda match: replacementsDict[match.group(0)], text)
 
-curlyBracesReplaceDict = {
+def createCompiledMultipleReplace(replacementsDict):
+  regex = re.compile('|'.join(map(re.escape, replacementsDict)))
+  return lambda text: regex.sub(lambda match: replacementsDict[match.group(0)], text)
+
+removeCurlyBraces = createCompiledMultipleReplace({
   '{': '',
   '}': ''
-}
-def removeCurlyBraces(text):
-  regex = re.compile('|'.join(map(re.escape, curlyBracesReplaceDict)))
-  return regex.sub(lambda match: curlyBracesReplaceDict[match.group(0)], text)
+})
 
 # taken from
 # https://gist.github.com/jasonmc/989158
@@ -42,23 +43,27 @@ def comp3(t,s,q,i=0):
       for y in comp3(t,s-x,u,i+1):
         yield y            
 
-def createCompositions(boardSize):
-  return compositions3(3, boardSize * boardSize / 4)
+def createCompositions(boardSize, includeZ = False):
+  numTypes = 4
+  if includeZ: numTypes += 1
+  return compositions3(numTypes - 1, boardSize * boardSize / 4)
 
-DEFAULT_NUM_ITER = 1
+DEFAULT_NUM_ITER = 2
 MAX_NUM_ITER = 5
 
 includeReflections = False
+includeZType = False
 numIter = DEFAULT_NUM_ITER
 
 def usage(exit = True):
-  print '''Usage:\n\t-n <numIter> or --iter <numIter>\tNumber of iterations
-  \t-r or --reflections\t\t\tInclude reflections
+  print '''Usage:\n\t-n <numIter> or --iter <numIter>\tNumber of iterations (Default: 2)
+  \t-r or --reflections\t\t\tInclude reflections (Default: False)
+  \t-z or --ztype\t\t\t\tInclude Z-pieces (Default: False)
   \t-h or --help\t\t\t\tShows this help message\n'''
   if exit: sys.exit(2)
 
 try:
-  opts, _ = getopt.getopt(sys.argv[1:], 'hrn:',['help', 'reflections', 'iter='])
+  opts, _ = getopt.getopt(sys.argv[1:], 'hrzn:',['help', 'reflections', 'ztype', 'iter='])
 except getopt.GetoptError as err:
   print err
   usage()
@@ -82,12 +87,14 @@ for opt, arg in opts:
       else:
         print 'Number of iterations selected is too large, limiting to {:d}'.format(MAX_NUM_ITER)
         numIter = MAX_NUM_ITER
-      if numIter > 1:
-        print 'Warning. Iterations after the first one will likely take many hours to complete.'
+      if numIter > 2:
+        print 'Warning. Iterations after the second one will likely take many hours to complete.'
     except ValueError:
       print'Non numeric number of iterations selected, defaulting to {:d}'.format(DEFAULT_NUM_ITER)
   elif opt in ('-r', '--reflections'):
     includeReflections = True
+  elif opt in ('-z', '--ztype'):
+    includeZType = True
   else:
     usage()
 
@@ -100,6 +107,16 @@ else:
   includedReflectionsString =  'Program run with reflections not included'
 print includedReflectionsString
 
+if includeZType:
+  includedZString = 'Program run with Z-pieces included'
+  zCommentOpen = ''
+  zCommentClose = ''
+else:
+  includedZString = 'Program run with Z-pieces not included'
+  zCommentOpen = '/*'
+  zCommentClose = '*/'
+print includedZString
+
 IDP_TEMPLATE_LOCATION = 'main.idp.template'
 IDP_LOCATION = 'main.idp'
 
@@ -109,7 +126,7 @@ IDP_TEMPLATE_FILE.close()
 
 # Hard-code pieces of idp output to allow for easy extraction of data
 UNSATISFIABLE_TEXT = 'Unsatisfiable\nNumber of models: 0\n'
-SATISFIABLE_PRETEXT_LEN = len('Number of models: 1\nModel 1\n=======\nstructure  : Tetriminos {\n')
+SATISFIABLE_PRETEXT_LEN = len('Number of models: 1\nModel 1\n=======\nstructure  : Tetrominos {\n')
 SATISFIABLE_POSTTEXT_LEN = len(' n = 4\n  nL = 0\n  nR = 0\n  nS = 4\n  nT = 0\n}\n\n')
 
 def average(arr):
@@ -130,7 +147,13 @@ def runIdp(boardSize):
 
   didFinish = True
 
-  for (nR, nS, nT, nL) in createCompositions(boardSize):
+  for composition in createCompositions(boardSize, includeZType):
+    nR = composition[0]
+    nS = composition[1]
+    nT = composition[2]
+    nL = composition[3]
+    if includeZType: nZ = composition[4]
+    else: nZ = 0 
     try:
       numCompositions += 1
 
@@ -144,9 +167,12 @@ def runIdp(boardSize):
         '{nS}': str(nS),
         '{nT}': str(nT),
         '{nL}': str(nL),
+        '{nZ}': str(nZ),
         '{maxIndex}': str(boardSize - 1),
         '{numBlocks}': str(boardSize * boardSize / 4),
-        '{reflectionSpecification}': reflectionSpecification
+        '{reflectionSpecification}': reflectionSpecification,
+        '{zCommentOpen}': zCommentOpen,
+        '{zCommentClose}': zCommentClose
       })
 
       IDP_FILE = open(IDP_LOCATION, 'w')
@@ -183,8 +209,9 @@ def runIdp(boardSize):
           nR: {:d},
           nS: {:d},
           nT: {:d},
-          nL: {:d}
-        }}'''.format(str(blockLocations), nR, nS, nT, nL)
+          nL: {:d},
+          nZ: {:d}
+        }}'''.format(str(blockLocations), nR, nS, nT, nL, nZ)
         outputs.append(output)
     except KeyboardInterrupt:
       didFinish = False
@@ -200,7 +227,7 @@ def runIdp(boardSize):
 
 output = '{'
 for iteration in range(numIter):
-  boardSize = 4 + iteration * 2
+  boardSize = 2 + iteration * 2
   print 'Iteration: {0:d}\nBoard size: {1:d}x{1:d}'.format(iteration + 1, boardSize)
 
   (
@@ -243,15 +270,15 @@ html = '''<html>
     <script src='project.js'></script>
   </head>
   <body>
-    <div id="title">Tetrimino Packing</div>
+    <div id="title">Tetromino Packing</div>
     <div id="subtitle">Jacob Patenaude - 301203788</div>
     <hr>
-    <div id="includedReflections">{}</div>
+    <div id="runDetails">{}<br>{}</div>
     <hr>
     <div id="root">Loading...</div>
     <div id="incomplete">{}</div>
   </body>
-</html>'''.format(output, includedReflectionsString, incompleteWarning)
+</html>'''.format(output, includedReflectionsString, includedZString, incompleteWarning)
 
 
 file = open(HTML_OUTPUT_FILE, 'w')

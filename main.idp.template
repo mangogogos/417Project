@@ -1,13 +1,14 @@
-vocabulary Tetriminos {
+vocabulary Tetrominos {
     type Index = {0..{maxIndex}} isa int
     type Block = {1..{numBlocks}} isa int
-    type Type = { "R"; "S"; "T"; "L" } isa char
+    type Type = { "R"; "S"; "T"; "L"; "Z" } isa char
     type Rotation = { "ROT_0"; "ROT_90"; "ROT_180"; "ROT_270" } isa string
 
     nR : int
     nS : int
     nT : int
     nL : int
+    nZ : int
 
     BlockType(Block, Type)
     Located(Block, Index, Index)
@@ -16,29 +17,29 @@ vocabulary Tetriminos {
     Has(Index, Index, Block)
 }
 
-structure Packing : Tetriminos {
+structure Packing : Tetrominos {
     // Define the inputs
     nR = {nR}
     nS = {nS}
     nT = {nT}
     nL = {nL}
+    nZ = {nZ}
 
     {reflectionSpecification}
 }
 
 procedure main(){
-    printmodels(modelexpand(TetriminoPacking,Packing))
+    printmodels(modelexpand(TetrominoPacking,Packing))
 }
 
-theory TetriminoPacking : Tetriminos {
+theory TetrominoPacking : Tetrominos {
     // All blocks have a type and the number of each type is correct
     !b[Block] : ?1 t[Type] : BlockType(b, t).
     #{ b[Block] : BlockType(b, "R") } = nR.
     #{ b[Block] : BlockType(b, "S") } = nS.
     #{ b[Block] : BlockType(b, "T") } = nT.
     #{ b[Block] : BlockType(b, "L") } = nL.
-
-    (nT + nL) % 2 = 0.
+    #{ b[Block] : BlockType(b, "Z") } = nZ.
 
     // All cells have a block
     !x[Index], y[Index] : ?1 b[Block] : Has(x, y, b).
@@ -51,7 +52,7 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "R") &
         Located(b, x, y) &
         Rotated(b, "ROT_0") =>
-            (y + 3 =< MAX[:Index]) &
+            (y + 3 =< {maxIndex}) &
             Has(x, y + 0, b) &
             Has(x, y + 1, b) &
             Has(x, y + 2, b) &
@@ -91,7 +92,7 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "S") &
         Located(b, x, y) & 
         ((Rotated(b, "ROT_0") & ~Reflected(b)) | (Rotated(b, "ROT_90") & Reflected(b))) =>
-            (x + 1 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
             (y - 1 >= 0) &
             Has(x + 0, y - 0, b) &
             Has(x + 0, y - 1, b) &
@@ -114,7 +115,7 @@ theory TetriminoPacking : Tetriminos {
         Located(b, x, y) &
         ((Rotated(b, "ROT_180") & ~Reflected(b)) | (Rotated(b, "ROT_270") & Reflected(b))) =>
             (x - 1 >= 0) &
-            (y + 1 =< MAX[:Index]) &
+            (y + 1 =< {maxIndex}) &
             Has(x - 0, y + 0, b) &
             Has(x - 0, y + 1, b) &
             Has(x - 1, y + 0, b) &
@@ -124,8 +125,8 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "S") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_180") & Reflected(b)) | (Rotated(b, "ROT_270") & ~Reflected(b))) =>
-            (x + 1 =< MAX[:Index]) &
-            (y + 1 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
+            (y + 1 =< {maxIndex}) &
             Has(x + 0, y + 0, b) &
             Has(x + 0, y + 1, b) &
             Has(x + 1, y + 0, b) &
@@ -135,7 +136,7 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_0") & ~Reflected(b) =>
-            (x + 1 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
             (y - 2 >= 0) &
             Has(x + 0, y - 0, b) &
             Has(x + 1, y - 0, b) &
@@ -168,7 +169,7 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_90") & Reflected(b) =>
-            (x + 2 =< MAX[:Index]) &
+            (x + 2 =< {maxIndex}) &
             (y - 1 >= 0) &
             Has(x + 0, y - 0, b) &
             Has(x + 0, y - 1, b) &
@@ -180,7 +181,7 @@ theory TetriminoPacking : Tetriminos {
         Located(b, x, y) &
         Rotated(b, "ROT_180") & ~Reflected(b) =>
             (x - 1 >= 0) &
-            (y + 2 =< MAX[:Index]) &
+            (y + 2 =< {maxIndex}) &
             Has(x - 0, y + 0, b) &
             Has(x - 1, y + 0, b) &
             Has(x - 0, y + 1, b) &
@@ -190,8 +191,8 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_180") & Reflected(b) =>
-            (x + 1 =< MAX[:Index]) &
-            (y + 2 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
+            (y + 2 =< {maxIndex}) &
             Has(x + 0, y + 0, b) &
             Has(x + 1, y + 0, b) &
             Has(x + 0, y + 1, b) &
@@ -201,8 +202,8 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "L") &
         Located(b, x, y) &
         Rotated(b, "ROT_270") & ~Reflected(b) =>
-            (x + 2 =< MAX[:Index]) &
-            (y + 1 =< MAX[:Index]) &
+            (x + 2 =< {maxIndex}) &
+            (y + 1 =< {maxIndex}) &
             Has(x + 0, y + 0, b) &
             Has(x + 0, y + 1, b) &
             Has(x + 1, y + 0, b) &
@@ -213,7 +214,7 @@ theory TetriminoPacking : Tetriminos {
         Located(b, x, y) &
         Rotated(b, "ROT_270") & Reflected(b) =>
             (x - 2 >= 0) &
-            (y + 1 =< MAX[:Index]) &
+            (y + 1 =< {maxIndex}) &
             Has(x - 0, y + 0, b) &
             Has(x - 0, y + 1, b) &
             Has(x - 1, y + 0, b) &
@@ -224,7 +225,7 @@ theory TetriminoPacking : Tetriminos {
         Located(b, x, y) &
         Rotated(b, "ROT_0") =>
             (y - 1 >= 0) &
-            (x + 1 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
             (x - 1 >= 0) &
             Has(x - 0, y - 0, b) &
             Has(x - 1, y - 0, b) &
@@ -236,7 +237,7 @@ theory TetriminoPacking : Tetriminos {
         Located(b, x, y) &
         ((Rotated(b, "ROT_90") & ~Reflected(b)) | (Rotated(b, "ROT_270") & Reflected(b))) =>
             (x - 1 >= 0) &
-            (y + 1 =< MAX[:Index]) &
+            (y + 1 =< {maxIndex}) &
             (y - 1 >= 0) &
             Has(x - 0, y + 0, b) &
             Has(x - 0, y + 1, b) &
@@ -247,9 +248,9 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "T") &
         Located(b, x, y) &
         Rotated(b, "ROT_180") =>
-            (y + 1 =< MAX[:Index]) &
+            (y + 1 =< {maxIndex}) &
             (x - 1 >= 0) &
-            (x + 1 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
             Has(x - 0, y + 0, b) &
             Has(x - 1, y + 0, b) &
             Has(x + 1, y + 0, b) &
@@ -259,11 +260,112 @@ theory TetriminoPacking : Tetriminos {
         BlockType(b, "T") &
         Located(b, x, y) &
         ((Rotated(b, "ROT_90") & Reflected(b)) | (Rotated(b, "ROT_270") & ~Reflected(b))) =>
-            (x + 1 =< MAX[:Index]) &
+            (x + 1 =< {maxIndex}) &
             (y - 1 >= 0) &
-            (y + 1 =< MAX[:Index]) &
+            (y + 1 =< {maxIndex}) &
             Has(x + 0, y + 0, b) &
             Has(x + 0, y + 1, b) &
             Has(x + 0, y - 1, b) &
             Has(x + 1, y - 0, b).
+
+{zCommentOpen}
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_0") & ~Reflected(b) =>
+            (x + 1 =< {maxIndex}) &
+            (x - 1 >= 0) &
+            (y - 1 >= 0) &
+            Has(x - 0, y - 0, b) &
+            Has(x - 1, y - 0, b) &
+            Has(x + 0, y - 1, b) &
+            Has(x + 1, y - 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_0") & Reflected(b) =>
+            (x + 1 =< {maxIndex}) &
+            (x - 1 >= 0) &
+            (y - 1 >= 0) &
+            Has(x + 0, y - 0, b) &
+            Has(x + 1, y - 0, b) &
+            Has(x - 0, y - 1, b) &
+            Has(x - 1, y - 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_90") & ~Reflected(b) =>
+            (y + 1 =< {maxIndex}) &
+            (y - 1 >= 0) &
+            (x - 1 >= 0) &
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x - 1, y - 0, b) &
+            Has(x - 1, y - 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_90") & Reflected(b) =>
+            (y - 1 >= 0) &
+            (y + 1 =< {maxIndex}) &
+            (x + 1 =< {maxIndex}) &
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x + 1, y - 0, b) &
+            Has(x + 1, y - 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_180") & ~Reflected(b) =>
+            (x - 1 >= 0) &
+            (x + 1 =< {maxIndex}) &
+            (y + 1 =< {maxIndex}) &
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x + 1, y + 0, b) &
+            Has(x - 1, y + 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_180") & Reflected(b) =>
+            (x - 1 >= 0) &
+            (x + 1 =< {maxIndex}) &
+            (y + 1 =< {maxIndex}) &
+            Has(x + 0, y + 0, b) &
+            Has(x + 0, y + 1, b) &
+            Has(x - 1, y + 0, b) &
+            Has(x + 1, y + 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_270") & ~Reflected(b) =>
+            (y - 1 >= 0) &
+            (y + 1 =< {maxIndex}) &
+            (x + 1 =< {maxIndex}) &
+            Has(x + 0, y - 0, b) &
+            Has(x + 0, y - 1, b) &
+            Has(x + 1, y + 0, b) &
+            Has(x + 1, y + 1, b).
+
+    !b[Block], x[Index], y[Index] :
+        BlockType(b, "Z") &
+        Located(b, x, y) &
+        Rotated(b, "ROT_270") & Reflected(b) =>
+            (y + 1 =< {maxIndex}) &
+            (y - 1 >= 0) &
+            (x - 1 >= 0) &
+            Has(x - 0, y - 0, b) &
+            Has(x - 0, y - 1, b) &
+            Has(x - 1, y + 0, b) &
+            Has(x - 1, y + 1, b).
+
+{zCommentClose}
+
 }
