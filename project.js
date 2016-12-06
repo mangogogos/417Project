@@ -86,7 +86,7 @@ function generateComposition({ blockLocations, nR, nS, nT, nL, nZ }, numRows, nu
   {
     const color = blockColors[blockId];
 
-    // Technically this is supposed to be x, y but I'm redefining the origin to be the top left as opposed to the top right for easier html rendering
+    // Technically this is supposed to be x, y but I'm redefining the origin to be the top left as opposed to the bottom left for easier html rendering
     // I suppose I couuuulld go back and rewrite my idp specification to use a top-left origin but why would I want to do that when this is easier?
     blockLocations[blockId].forEach(([y, x]) =>
     {

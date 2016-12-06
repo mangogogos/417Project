@@ -53,4 +53,5 @@ div.cell {
   height: 20px;
   margin: 1px;
   text-align: center;
+  -webkit-print-color-adjust: exact;
 }
