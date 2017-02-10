@@ -57,7 +57,7 @@ def getBoardSizes(maxBoardSize):
   return sizes
 
 DEFAULT_BOARD_SIZE = 4
-MAX_BOARD_SIZE = 8
+MAX_BOARD_SIZE = 6
 
 includeReflections = False
 includeZType = False
@@ -67,7 +67,7 @@ def usage():
   -m <numColumns> or --numcolumns <numColumns>\tSpecifies the width of the board (Overridden by --boardsize)
   -b <maxSize> or --boardsize <maxSize>\t\tSpecifies the maximum board size.
                                      \t\tWill run through all possible heights and widths up to
-                                     \t\t<maxSize>x<maxSize> (Default 4)
+                                     \t\t<maxSize>x<maxSize> (Default: 4)
   -r or --reflections\t\t\t\tInclude reflections (Default: False)
   -z or --ztype\t\t\t\t\tInclude Z-pieces (Default: False)
   -h or --help\t\t\t\t\tShows this help message\n'''
